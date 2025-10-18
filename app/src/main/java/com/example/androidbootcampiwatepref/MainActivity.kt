@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -24,10 +27,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.androidbootcampiwatepref.ui.theme.AndroidBootcampIwatePrefTheme
+import kotlinx.serialization.Serializable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,110 +43,211 @@ class MainActivity : ComponentActivity() {
         setContent {
             AndroidBootcampIwatePrefTheme {
                 // A surface container using the 'background' color from the theme
+//                Surface(
+//                    modifier = Modifier.fillMaxSize(),
+//                    color = MaterialTheme.colorScheme.background
+//                ) {
+////                    CountUp(
+////                        modifier = Modifier.padding()
+////                    )
+////                    MyLayout()
+//                    HomeScreen()
+//                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TodoApp()
-                }
-            }
-        }
-    }
-}
-
-// Todoリストのデータクラス
-data class TodoItem(
-    val id: Int,             // 各タスクを識別するためのID（連番）
-    val title: String,       // タスクの内容
-    var isDone: Boolean = false // チェックのあるなし
-)
-
-@Composable
-fun TodoApp() {
-    // remember を使って状態を保持する
-    // 初期状態に3つのタスクを入れておく
-    var todos by remember {
-        mutableStateOf(
-            listOf(
-                TodoItem(1, "プログラミングする"),
-                TodoItem(2, "課題やる"),
-                TodoItem(3, "サークル行く")
-            )
-        )
-    }
-    var newTodoText by remember { mutableStateOf("") }
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "ToDoリスト",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Todoリスト表示部分
-        LazyColumn(
-            modifier = Modifier.weight(1f)
-        ) {
-            items(todos) { todo ->
-                TodoRow(todo = todo, onToggle = { // toggleで切り替える
-                    // チェック状態を切り替える
-                    todos = todos.map {
-                        if (it.id == todo.id) it.copy(isDone = !it.isDone) else it
+                    val navController = rememberNavController()
+                    NavHost(
+                        navController = navController,
+                        startDestination = Routes.Home,
+                    ) {
+                        composable<Routes.Home> {
+                            HomeScreen(
+                                modifier = Modifier.fillMaxSize(),
+                                navigateTo = { route ->
+                                    navController.navigate(route)
+                                }
+                            )
+                        }
+                        composable<Routes.Search> {
+                            SearchScreen(
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
                     }
-                })
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 追加
-        Row {
-            // タスク名記入欄
-            TextField(
-                value = newTodoText,
-                onValueChange = { newTodoText = it },
-                placeholder = { Text("新しいタスクを入力") },
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            // 追加ボタン
-            Button(onClick = {
-                if (newTodoText.isNotBlank()) {
-                    val newTodo = TodoItem(id = todos.size + 1, title = newTodoText)
-                    todos = todos + newTodo
-                    newTodoText = ""
                 }
-            }) {
-                Text("追加")
             }
         }
     }
 }
 
-// 1行のタスク表示部分
+//@Composable
+//fun CountUp(
+//    modifier: Modifier = Modifier,
+//) {
+//    var count = remember { 0 }
+//    Column(
+//        modifier = modifier,
+//    ) {
+//        Text("count: $count")
+//        Button(
+//            onClick = {
+//                count++
+//            }
+//        ) {
+//            Text("Count Up!")
+//        }
+//    }
+//}
+//
+//@Composable
+//fun MyLayout() {
+//    Column {
+//        Row {
+//            Text("Row1")
+//            Spacer(modifier = Modifier.width(12.dp))
+//            Text("Row1の説明")
+//        }
+//        Row {
+//            Text("Row2")
+//            Spacer(modifier = Modifier.width(12.dp))
+//            Text("Row2の説明")
+//        }
+//        Row {
+//            Text("Row3")
+//            Spacer(modifier = Modifier.width(12.dp))
+//            Text("Row3の説明")
+//        }
+//    }
+//}
+
+//@Composable
+//fun MyLayout() {
+//    Column {
+//        (1..3).forEach {
+//            Item(it)
+//        }
+//    }
+//}
+//
+//@Composable
+//fun Item(count: Int) {
+//    Row {
+//        Text("Row$count")
+//        Spacer(modifier = Modifier.width(12.dp))
+//        Text("Row${count}の説明")
+//    }
+//}
+
+// オリジナル
+//@Composable
+//fun MyLayout() {
+//    Column {
+//        (1..3).forEach {
+//            Row {
+//                Text("Row$it")
+//                Spacer(modifier = Modifier.width(12.dp))
+//                Text("Row${it}の説明")
+//            }
+//        }
+//    }
+//}
+
+//@Composable
+//fun HomeScreen(
+//    modifier: Modifier = Modifier,
+//) {
+//    Box(
+//        modifier = modifier.verticalScroll(rememberScrollState()),
+//    ) {
+//        MyLayout()
+//    }
+//}
+//
+//@Composable
+//fun MyLayout() {
+//    Column {
+//        (0..<1000).forEach {
+//            Item(it)
+//        }
+//    }
+//}
+//
+//@Composable
+//fun Item(count: Int) {
+//    Row {
+//        Text("Row$count")
+//        Spacer(modifier = Modifier.width(12.dp))
+//        Text("Row${count}の説明")
+//    }
+//}
+
+//@Composable
+//fun HomeScreen(
+//    modifier: Modifier = Modifier,
+//) {
+//    Box(
+//        modifier = modifier, // verticalScrollは削除する
+//    ) {
+//        MyLayout()
+//    }
+//}
+//
+//private const val contentTypeOfItem = "CONTENT_TYPE_OF_ITEM"
+//
+//@Composable
+//fun MyLayout() {
+//    LazyColumn {
+//        items(
+//            count = 100000,
+//            key = { index -> index },
+//            contentType = { contentTypeOfItem },
+//        ) { count ->
+//            Item(count)
+//        }
+//    }
+//}
+
+// fun Item(count: Int) の記述はそのまま
+
+sealed interface Routes {
+    @Serializable
+    data object Home : Routes
+
+    @Serializable
+    data object Search : Routes
+}
 @Composable
-fun TodoRow(todo: TodoItem, onToggle: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    navigateTo: (route: Routes) -> Unit, // 追加
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = if (todo.isDone) "✅ ${todo.title}" else "⬜ ${todo.title}",
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Button(onClick = onToggle) {
-            Text(if (todo.isDone) "戻す" else "完了")
+        Column(
+            modifier = Modifier,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(text ="Home Screen")
+            Button(onClick = { navigateTo(Routes.Search) }) { // 追加
+                Text(text = "Go to Search Screen")
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun PreviewTodoApp() {
-    AndroidBootcampIwatePrefTheme {
-        TodoApp()
+fun SearchScreen(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = "Search Screen")
     }
 }
